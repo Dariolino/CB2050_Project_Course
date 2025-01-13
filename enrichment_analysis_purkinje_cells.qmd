@@ -1,0 +1,66 @@
+---
+title: "GO_and_KEGG_enrichment_analysis_Purkinje_cells"
+author: "Dario"
+format: html
+editor: visual
+---
+
+## Note
+
+This script uses 324 Purkinje cell-enriched genes derived from pseudobulking analysis of Stereo-seq data. How the selection was performed can be found in the script: pseudobulk_analysis_plots.py.
+
+## GO term and KEGG enrichment analysis of 342 Purkinje cell-enriched genes
+
+-   load libraries
+
+```{r}
+library(org.Hs.eg.db) # to get human ensembl gene annotations
+library(jsonlite) # for importing json file
+library(clusterProfiler) # for enrichment analyses
+library(DOSE) # for visualizing enrichment results
+```
+
+-   load files (only works when working in the right directory)
+
+```{r}
+setwd("/Users/dario/Desktop/")
+
+purkinje_genes <- fromJSON("Purkinje_genes.json")
+cerebellum_genes <- fromJSON("Cerebellum_genes.json")
+length(purkinje_genes)
+length(cerebellum_genes)
+```
+
+### GO term enrichment analysis (overrepresentation analysis)
+
+```{r}
+ora_results <- enrichGO(gene = purkinje_genes, universe = cerebellum_genes,
+                        OrgDb = org.Hs.eg.db, keyType = "SYMBOL", ont = "ALL",          
+                        pAdjustMethod = "BH", pvalueCutoff  = 0.05, qvalueCutoff  = 0.2)
+
+print(head(ora_results))
+```
+
+```{r echo=TRUE, fig.width=6.5, fig.height= 6}
+dotplot(ora_results, showCategory = 10, title = "Enriched GO Terms")
+```
+
+### KEGG pathway enrichment analysis
+
+```{r}
+# convert gene names to ENTREZ ids
+cerebellum_genes_entrez <- bitr(cerebellum_genes, fromType = "SYMBOL", toType = "ENTREZID",
+                                OrgDb = org.Hs.eg.db)
+purkinje_genes_entrez <- bitr(purkinje_genes, fromType = "SYMBOL", toType = "ENTREZID",
+                              OrgDb = org.Hs.eg.db)
+
+# perform enrichment
+kegg_results <- enrichKEGG(gene = purkinje_genes_entrez$ENTREZID, universe = cerebellum_genes_entrez$ENTREZID, 
+                           organism = 'hsa', pvalueCutoff  = 0.05, qvalueCutoff  = 0.2)
+
+head(as.data.frame(kegg_results))
+```
+
+```{r echo=TRUE, fig.width=6.5, fig.height= 6}
+dotplot(kegg_results, showCategory = 10, title = "Enriched KEGG Pathways")
+```

@@ -1,0 +1,43 @@
+---
+title: "Upset_plot_enriched_purkinje_genes"
+author: "Dario"
+format: html
+editor: visual
+---
+
+## Note:
+
+This script is based on prior analysis of matching Purkinje cell-enriched genes with Human Protein Atlas data, and uses matches (across subcellular locations) to perform a UpSetPlot. How the gene sets were derived can be found in the script: match_stereo_with_hpa_manual_annotations.py
+
+## UpSet Plot for comparing overlaps in protein subcellular localization in Purkinje cells
+
+-   load necessary library
+
+```{r}
+library(UpSetR)
+```
+
+-   set working directory and import gene lists
+
+```{r}
+setwd("/Users/dario/Desktop/purkinje_project/Task_2/Cell_segmentation_scripts")
+genes_enr_in_cyto <- scan("genes_enr_in_cyto.txt", what = "", sep = "\n")
+genes_enr_in_dendrites <- scan("genes_enr_in_dendrites.txt", what = "", sep = "\n")
+genes_enr_in_nucleus <- scan("genes_enr_in_nucleus.txt", what = "", sep = "\n")
+```
+
+-   create input list aligning with necessary format for creating the UpSet plot
+
+```{r}
+listInput <- list("High/Medium Expression - Cytoplasm" = genes_enr_in_cyto,
+                  "High/Medium Expression - Dendrites" = genes_enr_in_dendrites,
+                  "High/Medium Expression - Nucleus" = genes_enr_in_nucleus)
+```
+
+-   create UpSetPlot
+
+```{r, fig.height = 6, fig.width = 12}
+upset(fromList(listInput), 
+      order.by = "freq", 
+      text.scale = c(1, 1, 1, 1, 1, 1)*2)
+```
